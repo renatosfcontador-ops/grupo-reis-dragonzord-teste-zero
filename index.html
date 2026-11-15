@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="assets/styles.css" />
 </head>
 <body>
+  <div id="app-container" class="app-shell" hidden>
   <header class="topbar">
     <div class="brand">
       <div class="brand-mark" aria-hidden="true">DZ</div>
@@ -207,6 +208,17 @@
           <div class="terminal-line"><code>node scripts/create-instance.js ../meu-novo-zord ../catalogos/meu-catalogo.json</code></div>
           <a class="btn btn-ghost" href="docs/INSTANCE-GUIDE.md" target="_blank" rel="noopener noreferrer">Guia para IA / novo dev</a>
         </div>
+
+        <div class="panel">
+          <h2>Sessão de acesso</h2>
+          <p class="hint">
+            A sessão fica guardada neste navegador. Use o botão abaixo para encerrar o acesso e limpar o
+            token local <code>dragonzord_auth</code>.
+          </p>
+          <div class="row-actions">
+            <button type="button" class="btn btn-ghost" id="logout-button">Sair / Encerrar sessão</button>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -243,6 +255,36 @@
     <span>DragonZord · painel mestre de redirecionamento · nenhum binário pesado é baixado localmente</span>
     <span id="footer-env"></span>
   </footer>
+  </div>
+
+  <div class="login-overlay" id="login-overlay" role="dialog" aria-modal="true" aria-labelledby="login-title">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="login-mark" aria-hidden="true">DZ</div>
+        <div>
+          <span class="login-eyebrow">Acesso restrito</span>
+          <h2 id="login-title">DRAGONZORD</h2>
+          <p>Painel de homologação · Grupo Reis</p>
+        </div>
+      </div>
+      <form id="login-form" class="login-form" novalidate>
+        <div class="login-field">
+          <label for="login-email">E-mail</label>
+          <input id="login-email" name="email" type="email" autocomplete="username" required placeholder="gestor@exemplo.com" />
+        </div>
+        <div class="login-field">
+          <label for="login-password">Senha</label>
+          <div class="login-password-wrap">
+            <input id="login-password" name="password" type="password" autocomplete="current-password" required placeholder="••••••••" />
+            <button type="button" id="toggle-password" class="login-toggle" aria-label="Mostrar senha">Mostrar</button>
+          </div>
+        </div>
+        <div class="login-error" id="login-error" role="alert" hidden></div>
+        <button type="submit" class="btn btn-primary login-submit" id="login-submit">Entrar no Sistema</button>
+      </form>
+      <p class="login-note">Acesso privado. Não compartilhe o link.</p>
+    </div>
+  </div>
 
   <script src="assets/app.js"></script>
 </body>

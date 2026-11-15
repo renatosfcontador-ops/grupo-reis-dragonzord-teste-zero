@@ -526,6 +526,7 @@ function bindEvents() {
   });
 
   $$('.tab').forEach((tab) => tab.addEventListener('click', () => switchView(tab.dataset.view)));
+  $('#logout-button')?.addEventListener('click', logout);
 
   $$('#modal [data-close]').forEach((element) => element.addEventListener('click', closeModal));
   document.addEventListener('keydown', (event) => {
@@ -630,6 +631,132 @@ function bindEvents() {
   });
 }
 
+const AUTH_KEY = 'dragonzord_auth';
+const AUTH_EMAIL = 'renato.sf.contador@gmail.com';
+const AUTH_PASSWORD_HASH = 'e86f78a8a3caf0b60d8e74e5942aa6d86dc150cd3c03338aef25b7d2d7e3acc7';
+let appStarted = false;
+
+function hasSession() {
+  try {
+    return localStorage.getItem(AUTH_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function setSession() {
+  try {
+    localStorage.setItem(AUTH_KEY, 'true');
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+function clearSession() {
+  try {
+    localStorage.removeItem(AUTH_KEY);
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+async function sha256(text) {
+  const data = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function showLogin() {
+  const overlay = $('#login-overlay');
+  const app = $('#app-container');
+  if (overlay) overlay.hidden = false;
+  if (app) app.hidden = true;
+  document.body.classList.add('auth-locked');
+  const error = $('#login-error');
+  if (error) error.hidden = true;
+  const password = $('#login-password');
+  if (password) password.value = '';
+  setTimeout(() => $('#login-email')?.focus(), 60);
+}
+
+function enterApp() {
+  const overlay = $('#login-overlay');
+  const app = $('#app-container');
+  if (overlay) overlay.hidden = true;
+  if (app) app.hidden = false;
+  document.body.classList.remove('auth-locked');
+}
+
+function logout() {
+  clearSession();
+  if (!$('#modal').hidden) closeModal();
+  showLogin();
+  window.scrollTo(0, 0);
+}
+
+async function bindAuthEvents() {
+  const form = $('#login-form');
+  if (!form) return;
+
+  $('#toggle-password')?.addEventListener('click', () => {
+    const input = $('#login-password');
+    const toggle = $('#toggle-password');
+    if (!input || !toggle) return;
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    toggle.textContent = show ? 'Ocultar' : 'Mostrar';
+    toggle.setAttribute('aria-label', show ? 'Ocultar senha' : 'Mostrar senha');
+  });
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const email = $('#login-email').value.trim().toLowerCase();
+    const password = $('#login-password').value;
+    const error = $('#login-error');
+    const button = $('#login-submit');
+
+    error.hidden = true;
+    if (!email || !password) {
+      error.textContent = 'Informe e-mail e senha para continuar.';
+      error.hidden = false;
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = 'Validando...';
+    try {
+      const hash = await sha256(password);
+      if (email === AUTH_EMAIL && hash === AUTH_PASSWORD_HASH) {
+        setSession();
+        $('#login-password').value = '';
+        enterApp();
+        startApp();
+      } else {
+        error.textContent = 'Credenciais inválidas. Verifique o e-mail e a senha.';
+        error.hidden = false;
+        const card = $('.login-card');
+        card.classList.remove('shake');
+        void card.offsetWidth;
+        card.classList.add('shake');
+      }
+    } catch {
+      error.textContent = 'Não foi possível validar a sessão neste navegador.';
+      error.hidden = false;
+    } finally {
+      button.disabled = false;
+      button.textContent = 'Entrar no Sistema';
+    }
+  });
+}
+
+async function startApp() {
+  if (appStarted) return;
+  appStarted = true;
+  await init();
+}
+
 async function init() {
   bindEvents();
   state.api = await detectApi();
@@ -660,4 +787,14 @@ async function init() {
     : 'sem servidor · localStorage';
 }
 
-init();
+async function bootstrap() {
+  await bindAuthEvents();
+  if (hasSession()) {
+    enterApp();
+    startApp();
+  } else {
+    showLogin();
+  }
+}
+
+bootstrap();

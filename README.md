@@ -179,6 +179,14 @@ ambiente. Os relatórios passam a ser persistidos em `reports/reports.json`.
 
 ---
 
-## 9. Licença
+## 9. Acesso
+
+O template inclui um overlay de login com sessão em `localStorage` (`dragonzord_auth`) e botão de
+encerramento em **Configurações → Sair / Encerrar sessão**.
+
+> **Aviso de segurança:** por ser um site estático, a validação é client-side e pode ser inspecionada ou
+> contornada. Para proteção real, use Cloudflare Access, GitHub OAuth ou um back-end autenticado.
+
+## 10. Licença
 
 MIT.
