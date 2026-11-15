@@ -29,6 +29,7 @@
   <nav class="tabs" role="tablist" aria-label="Navegação principal">
     <button class="tab is-active" data-view="grid" role="tab" aria-selected="true">Grid de Comando</button>
     <button class="tab" data-view="reports" role="tab" aria-selected="false">Relatórios de Teste</button>
+    <button class="tab" data-view="estaleiro" role="tab" aria-selected="false">Estaleiro</button>
     <button class="tab" data-view="kaggle" role="tab" aria-selected="false">Kaggle Sandbox</button>
     <button class="tab" data-view="settings" role="tab" aria-selected="false">Configurações</button>
   </nav>
@@ -114,6 +115,67 @@
           </div>
           <p class="empty" id="reports-empty" hidden>Nenhum relatório ainda. Comece pelo grid de comando.</p>
         </div>
+      </div>
+    </section>
+
+    <section id="view-estaleiro" class="view" role="tabpanel" aria-label="Estaleiro">
+      <div class="estaleiro-hero panel">
+        <div>
+          <span class="eyebrow">Doca de montagem</span>
+          <h2>Estaleiro</h2>
+          <p>
+            Selecione os módulos avulsos do catálogo, defina o produto e registre a arquitetura antes do
+            deploy comercial. Os rascunhos ficam neste navegador; exporte o manifesto para versionar.
+          </p>
+        </div>
+        <div class="estaleiro-hero-actions">
+          <a class="btn btn-ghost" href="estaleiro/README.md" target="_blank" rel="noopener noreferrer">Pasta estaleiro</a>
+        </div>
+      </div>
+
+      <div class="estaleiro-layout">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Módulos disponíveis</h2>
+            <span class="badge-soft" id="estaleiro-count">0 selecionados</span>
+          </div>
+          <input id="estaleiro-search" class="estaleiro-search" type="search" placeholder="Filtrar módulos..." />
+          <div id="estaleiro-modules" class="estaleiro-modules"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Produto em montagem</h2>
+            <span class="badge-soft">rascunho local</span>
+          </div>
+          <div class="field">
+            <label for="build-name">Nome do produto</label>
+            <input id="build-name" type="text" maxlength="120" placeholder="Ex.: CRM de conteúdo com avatares" />
+          </div>
+          <div class="field">
+            <label for="build-objective">Objetivo</label>
+            <textarea id="build-objective" rows="3" maxlength="1000" placeholder="O que o produto deve entregar?"></textarea>
+          </div>
+          <div class="field">
+            <label for="build-notes">Notas de arquitetura</label>
+            <textarea id="build-notes" rows="3" maxlength="2000" placeholder="Modelos, integrações, limites e riscos de licença."></textarea>
+          </div>
+          <div class="estaleiro-selected" id="estaleiro-selected"></div>
+          <div class="row-actions">
+            <button type="button" class="btn btn-primary" id="save-build">Salvar no estaleiro</button>
+            <button type="button" class="btn btn-ghost" id="export-build">Exportar manifesto</button>
+            <button type="button" class="btn btn-ghost" id="clear-build">Limpar seleção</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Produtos estruturados</h2>
+          <span class="badge-soft" id="estaleiro-build-count">0</span>
+        </div>
+        <div id="estaleiro-builds" class="estaleiro-builds"></div>
+        <p class="empty" id="estaleiro-builds-empty">Nenhum produto salvo ainda.</p>
       </div>
     </section>
 

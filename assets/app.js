@@ -2,6 +2,7 @@
 
 const LS_REPORTS = 'dragonzord_reports_v1';
 const LS_OVERRIDES = 'dragonzord_overrides_v1';
+const LS_ESTALEIRO = 'dragonzord_estaleiro_v1';
 const API = {
   health: 'api/health',
   projects: 'api/projects',
@@ -20,6 +21,9 @@ const state = {
   activeProjectId: null,
   embedOpen: false,
   lastFocus: null,
+  estaleiroSelected: new Set(),
+  estaleiroQuery: '',
+  estaleiroBuilds: [],
 };
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -76,6 +80,14 @@ function categoryById(id) {
 
 function projectById(id) {
   return state.catalog.projects.find((project) => String(project.id) === String(id)) || null;
+}
+
+function complianceLabel(value) {
+  return {
+    green: 'Verde',
+    yellow: 'Amarelo',
+    red: 'Vermelho',
+  }[value] || String(value || 'pendente');
 }
 
 function kaggleSearchUrl(project) {
@@ -289,6 +301,9 @@ function cardTemplate(project) {
   const tags = (project.tags || []).slice(0, 3)
     .map((tag) => `<span class="t">${escapeHtml(tag)}</span>`)
     .join('');
+  const complianceBadge = project.compliance
+    ? `<span class="compliance-badge ${escapeHtml(project.compliance)}" title="${escapeHtml(project.complianceNote || '')}"><span class="compliance-dot ${escapeHtml(project.compliance)}"></span>${escapeHtml(complianceLabel(project.compliance))}</span>`
+    : '';
   const videoButton = project.videoUrl
     ? `<a class="btn btn-ghost" href="${escapeHtml(project.videoUrl)}" target="_blank" rel="noopener noreferrer" title="Buscar vídeo de referência">Vídeo</a>`
     : '';
@@ -305,6 +320,7 @@ function cardTemplate(project) {
       <p class="card-desc">${escapeHtml(project.description)}</p>
       <div class="card-tags">
         <span class="tag cat-${escapeHtml(project.category)}">${escapeHtml(category.short)}</span>
+        ${complianceBadge}
         ${tags}
       </div>
       <div class="card-actions">
@@ -435,6 +451,260 @@ function renderKaggleProjectList() {
     .join('');
 }
 
+function complianceConfig() {
+  return state.catalog.compliance || {
+    green: {
+      label: 'Sinal Verde',
+      title: '100% liberado',
+      meaning: 'Licenças permissivas abertas (MIT, Apache 2.0, BSD).',
+      action: 'Comercialização livre, alteração de marca, templates e empacotamento completo.',
+    },
+    yellow: {
+      label: 'Sinal Amarelo',
+      title: 'Permitido com ressalvas',
+      meaning: 'Licenças que exigem créditos, restrições a fins não comerciais ou copyleft moderado.',
+      action: 'Comercialização permitida com atribuição obrigatória e verificação de uso.',
+    },
+    red: {
+      label: 'Sinal Vermelho',
+      title: 'Proibido para comercialização direta',
+      meaning: 'Repositórios restritos à pesquisa, uso pessoal ou com patentes fechadas.',
+      action: 'Uso restrito a homologação interna no Kaggle Sandbox e testes de bancada.',
+    },
+  };
+}
+
+function renderCompliance() {
+  const counters = $('#compliance-counters');
+  const cards = $('#compliance-cards');
+  const body = $('#compliance-body');
+  if (!counters || !cards || !body) return;
+
+  const config = complianceConfig();
+  const counts = { green: 0, yellow: 0, red: 0 };
+  for (const project of state.catalog.projects) {
+    if (counts[project.compliance] !== undefined) counts[project.compliance] += 1;
+  }
+
+  counters.innerHTML = ['green', 'yellow', 'red'].map((key) => `
+    <div class="compliance-counter ${key}">
+      <strong>${counts[key]}</strong>
+      <span>${escapeHtml(config[key].label)}</span>
+    </div>`).join('');
+
+  cards.innerHTML = ['green', 'yellow', 'red'].map((key) => {
+    const item = config[key];
+    const names = state.catalog.projects
+      .filter((project) => project.compliance === key)
+      .map((project) => project.name);
+    return `<article class="compliance-card ${key}">
+      <h3><span class="compliance-dot ${key}"></span>${escapeHtml(item.label)} · ${escapeHtml(item.title)}</h3>
+      <p>${escapeHtml(item.meaning)}</p>
+      <p><strong>Ação:</strong> ${escapeHtml(item.action)}</p>
+      <ul>${names.map((name) => `<li>${escapeHtml(name)}</li>`).join('')}</ul>
+    </article>`;
+  }).join('');
+
+  body.innerHTML = state.catalog.projects.map((project) => {
+    const compliance = project.compliance || 'yellow';
+    return `<tr>
+      <td>#${String(project.id).padStart(2, '0')}</td>
+      <td>${escapeHtml(project.name)}</td>
+      <td>${escapeHtml(categoryById(project.category).short)}</td>
+      <td>${escapeHtml(project.license || '-')}</td>
+      <td><span class="compliance-badge ${compliance}"><span class="compliance-dot ${compliance}"></span>${escapeHtml(complianceLabel(compliance))}</span></td>
+      <td>${escapeHtml(project.complianceNote || '-')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function updateEstaleiroCount() {
+  const element = $('#estaleiro-count');
+  if (element) element.textContent = `${state.estaleiroSelected.size} selecionado(s)`;
+}
+
+function renderEstaleiroModules() {
+  const wrap = $('#estaleiro-modules');
+  if (!wrap) return;
+  const query = state.estaleiroQuery.trim().toLowerCase();
+  const list = state.catalog.projects.filter((project) => {
+    if (!query) return true;
+    return [
+      project.name,
+      project.description,
+      project.license,
+      categoryById(project.category).short,
+    ].join(' ').toLowerCase().includes(query);
+  });
+
+  wrap.innerHTML = list.length ? list.map((project) => {
+    const checked = state.estaleiroSelected.has(String(project.id)) ? 'checked' : '';
+    return `<label class="estaleiro-module">
+      <input type="checkbox" data-module-id="${escapeHtml(project.id)}" ${checked} />
+      <span class="estaleiro-module-main">
+        <span class="estaleiro-module-name">#${String(project.id).padStart(2, '0')} · ${escapeHtml(project.name)}</span>
+        <span class="estaleiro-module-meta">${escapeHtml(categoryById(project.category).short)} · ${escapeHtml(project.license || 'licença não informada')}</span>
+      </span>
+    </label>`;
+  }).join('') : '<p class="empty">Nenhum módulo encontrado.</p>';
+
+  $$('#estaleiro-modules [data-module-id]').forEach((input) => {
+    input.addEventListener('change', () => {
+      const id = input.dataset.moduleId;
+      if (input.checked) state.estaleiroSelected.add(id);
+      else state.estaleiroSelected.delete(id);
+      renderEstaleiroSelected();
+      updateEstaleiroCount();
+    });
+  });
+  updateEstaleiroCount();
+}
+
+function renderEstaleiroSelected() {
+  const wrap = $('#estaleiro-selected');
+  if (!wrap) return;
+  const selected = state.catalog.projects.filter((project) => state.estaleiroSelected.has(String(project.id)));
+  wrap.innerHTML = selected.length
+    ? selected.map((project) => `<span class="estaleiro-chip">#${String(project.id).padStart(2, '0')} ${escapeHtml(project.name)}<button type="button" data-remove-module="${escapeHtml(project.id)}" aria-label="Remover módulo">×</button></span>`).join('')
+    : '<span class="hint">Nenhum módulo selecionado.</span>';
+
+  $$('#estaleiro-selected [data-remove-module]').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.estaleiroSelected.delete(button.dataset.removeModule);
+      renderEstaleiroModules();
+      renderEstaleiroSelected();
+    });
+  });
+  updateEstaleiroCount();
+}
+
+function renderEstaleiroBuilds() {
+  const wrap = $('#estaleiro-builds');
+  const empty = $('#estaleiro-builds-empty');
+  const count = $('#estaleiro-build-count');
+  if (!wrap) return;
+  if (count) count.textContent = String(state.estaleiroBuilds.length);
+
+  if (!state.estaleiroBuilds.length) {
+    wrap.innerHTML = '';
+    if (empty) empty.hidden = false;
+    return;
+  }
+
+  if (empty) empty.hidden = true;
+  wrap.innerHTML = state.estaleiroBuilds.map((build) => {
+    const modules = Array.isArray(build.projectIds) ? build.projectIds : [];
+    return `<article class="estaleiro-build">
+      <div class="estaleiro-build-head">
+        <div>
+          <h3>${escapeHtml(build.name)}</h3>
+          <p>${escapeHtml(build.objective || 'Sem objetivo definido.')}</p>
+        </div>
+        <span class="badge-soft">${modules.length} módulo(s)</span>
+      </div>
+      <p>${escapeHtml(build.notes || '')}</p>
+      <div class="estaleiro-build-actions">
+        <button type="button" class="btn btn-ghost" data-load-build="${escapeHtml(build.id)}">Carregar</button>
+        <button type="button" class="btn btn-ghost" data-export-build="${escapeHtml(build.id)}">Exportar</button>
+        <button type="button" class="btn btn-ghost" data-delete-build="${escapeHtml(build.id)}">Excluir</button>
+      </div>
+    </article>`;
+  }).join('');
+
+  $$('#estaleiro-builds [data-load-build]').forEach((button) => {
+    button.addEventListener('click', () => loadBuild(button.dataset.loadBuild));
+  });
+  $$('#estaleiro-builds [data-export-build]').forEach((button) => {
+    button.addEventListener('click', () => exportBuildById(button.dataset.exportBuild));
+  });
+  $$('#estaleiro-builds [data-delete-build]').forEach((button) => {
+    button.addEventListener('click', () => deleteBuild(button.dataset.deleteBuild));
+  });
+}
+
+function renderEstaleiro() {
+  renderEstaleiroModules();
+  renderEstaleiroSelected();
+  renderEstaleiroBuilds();
+}
+
+function currentBuildDraft() {
+  return {
+    name: $('#build-name')?.value.trim() || '',
+    objective: $('#build-objective')?.value.trim() || '',
+    notes: $('#build-notes')?.value.trim() || '',
+    projectIds: Array.from(state.estaleiroSelected),
+  };
+}
+
+function saveBuild() {
+  const draft = currentBuildDraft();
+  if (!draft.name) { alert('Dê um nome ao produto.'); return; }
+  if (!draft.projectIds.length) { alert('Selecione ao menos um módulo.'); return; }
+  const build = {
+    ...draft,
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    createdAt: new Date().toISOString(),
+  };
+  state.estaleiroBuilds.unshift(build);
+  writeLocal(LS_ESTALEIRO, state.estaleiroBuilds);
+  clearBuild();
+  renderEstaleiroBuilds();
+  alert('Produto salvo no estaleiro.');
+}
+
+function exportBuildById(id) {
+  const build = state.estaleiroBuilds.find((item) => String(item.id) === String(id));
+  if (build) downloadJson(`estaleiro-${build.name}.json`, build);
+}
+
+function deleteBuild(id) {
+  if (!window.confirm('Excluir este produto do estaleiro?')) return;
+  state.estaleiroBuilds = state.estaleiroBuilds.filter((build) => String(build.id) !== String(id));
+  writeLocal(LS_ESTALEIRO, state.estaleiroBuilds);
+  renderEstaleiroBuilds();
+}
+
+function loadBuild(id) {
+  const build = state.estaleiroBuilds.find((item) => String(item.id) === String(id));
+  if (!build) return;
+  state.estaleiroSelected = new Set((build.projectIds || []).map(String));
+  if ($('#build-name')) $('#build-name').value = build.name || '';
+  if ($('#build-objective')) $('#build-objective').value = build.objective || '';
+  if ($('#build-notes')) $('#build-notes').value = build.notes || '';
+  renderEstaleiroModules();
+  renderEstaleiroSelected();
+}
+
+function clearBuild() {
+  state.estaleiroSelected.clear();
+  if ($('#build-name')) $('#build-name').value = '';
+  if ($('#build-objective')) $('#build-objective').value = '';
+  if ($('#build-notes')) $('#build-notes').value = '';
+  renderEstaleiroModules();
+  renderEstaleiroSelected();
+}
+
+function exportCurrentBuild() {
+  const draft = currentBuildDraft();
+  if (!draft.name) { alert('Dê um nome ao produto antes de exportar.'); return; }
+  if (!draft.projectIds.length) { alert('Selecione ao menos um módulo.'); return; }
+  downloadJson(`estaleiro-${draft.name}.json`, {
+    ...draft,
+    exportedAt: new Date().toISOString(),
+    modules: state.catalog.projects
+      .filter((project) => state.estaleiroSelected.has(String(project.id)))
+      .map((project) => ({
+        id: project.id,
+        name: project.name,
+        category: project.category,
+        repoUrl: project.repoUrl,
+        license: project.license || null,
+        compliance: project.compliance || null,
+      })),
+  });
+}
+
 function renderReports() {
   const body = $('#reports-body');
   const empty = $('#reports-empty');
@@ -479,6 +749,8 @@ function switchView(view) {
   });
   $$('.view').forEach((section) => section.classList.toggle('is-active', section.id === `view-${view}`));
   if (view === 'reports') renderReports();
+  if (view === 'compliance') renderCompliance();
+  if (view === 'estaleiro') renderEstaleiro();
   if (view === 'kaggle') renderKaggleProjectList();
   if (view === 'settings') $('#overrides-editor').value = JSON.stringify(state.overrides, null, 2);
 }
@@ -527,6 +799,27 @@ function bindEvents() {
 
   $$('.tab').forEach((tab) => tab.addEventListener('click', () => switchView(tab.dataset.view)));
   $('#logout-button')?.addEventListener('click', logout);
+  $('#export-compliance')?.addEventListener('click', () => {
+    downloadJson('dragonzord-compliance.json', {
+      exportedAt: new Date().toISOString(),
+      rules: state.catalog.compliance || {},
+      projects: state.catalog.projects.map((project) => ({
+        id: project.id,
+        name: project.name,
+        category: project.category,
+        license: project.license || null,
+        compliance: project.compliance || null,
+        complianceNote: project.complianceNote || '',
+      })),
+    });
+  });
+  $('#estaleiro-search')?.addEventListener('input', (event) => {
+    state.estaleiroQuery = event.target.value;
+    renderEstaleiroModules();
+  });
+  $('#save-build')?.addEventListener('click', saveBuild);
+  $('#export-build')?.addEventListener('click', exportCurrentBuild);
+  $('#clear-build')?.addEventListener('click', clearBuild);
 
   $$('#modal [data-close]').forEach((element) => element.addEventListener('click', closeModal));
   document.addEventListener('keydown', (event) => {
@@ -775,12 +1068,15 @@ async function init() {
   applyOverrides();
   state.reports = await loadReports();
   state.reports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  state.estaleiroBuilds = readLocal(LS_ESTALEIRO, []);
 
   renderStats();
   renderFilters();
   renderGrid();
   renderProjectOptions();
   renderReports();
+  renderCompliance();
+  renderEstaleiro();
   renderKaggleProjectList();
   $('#footer-env').textContent = state.api
     ? 'servidor local ativo · relatórios persistentes'
