@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DragonZord // Teste Zero</title>
+  <meta name="description" content="Template coringa do DragonZord: painel de homologação para catálogos de projetos, agentes e ferramentas de IA." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%89%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">DZ</div>
+      <div class="brand-text">
+        <h1>DRAGONZORD</h1>
+        <p id="brand-subtitle">Teste Zero · Molde coringa reutilizável</p>
+      </div>
+    </div>
+    <div class="topbar-meta">
+      <div class="stat"><span id="stat-total">0</span><small>projetos</small></div>
+      <div class="stat"><span id="stat-cats">0</span><small>categorias</small></div>
+      <div class="stat"><span id="stat-reports">0</span><small>relatórios</small></div>
+      <div class="conn" id="conn-badge" title="Status da API"><span class="dot"></span><span id="conn-label">offline</span></div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Navegação principal">
+    <button class="tab is-active" data-view="grid" role="tab" aria-selected="true">Grid de Comando</button>
+    <button class="tab" data-view="reports" role="tab" aria-selected="false">Relatórios de Teste</button>
+    <button class="tab" data-view="kaggle" role="tab" aria-selected="false">Kaggle Sandbox</button>
+    <button class="tab" data-view="settings" role="tab" aria-selected="false">Configurações</button>
+  </nav>
+
+  <main>
+    <section id="view-grid" class="view is-active" role="tabpanel" aria-label="Grid de Comando">
+      <div class="system-strip">
+        <span class="signal"><i></i> CATÁLOGO CARREGADO</span>
+        <span>· ZERO CLONAGEM LOCAL</span>
+        <span>· AWS PRODUÇÃO BLINDADA</span>
+        <span class="strip-right">CORDÃO UMBILICAL: GITHUB → DEMO → KAGGLE</span>
+      </div>
+
+      <div class="toolbar">
+        <label class="search">
+          <span class="sr-only">Buscar projeto</span>
+          <input id="search-input" type="search" placeholder="Buscar por nome, descrição, tag ou categoria..." autocomplete="off" />
+        </label>
+        <div class="filters" id="filter-chips" role="group" aria-label="Filtros por categoria"></div>
+      </div>
+
+      <div class="grid" id="project-grid" aria-live="polite"></div>
+      <p class="empty" id="grid-empty" hidden>Nenhum projeto encontrado para este filtro.</p>
+    </section>
+
+    <section id="view-reports" class="view" role="tabpanel" aria-label="Relatórios de Teste">
+      <div class="report-layout">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Registrar relatório de teste</h2>
+            <span class="badge-soft">memória local ou servidor</span>
+          </div>
+          <form id="report-form" class="report-form">
+            <div class="field">
+              <label for="rep-project">Projeto</label>
+              <select id="rep-project" name="projectId" required></select>
+            </div>
+            <div class="field">
+              <label for="rep-operator">Operador</label>
+              <input id="rep-operator" name="operator" type="text" placeholder="Seu nome" maxlength="120" required />
+            </div>
+            <div class="field">
+              <label for="rep-verdict">Veredito</label>
+              <select id="rep-verdict" name="verdict">
+                <option value="aprovado">Aprovado</option>
+                <option value="patina" selected>Patina (excesso de complexidade)</option>
+                <option value="reprovado">Reprovado</option>
+                <option value="pendente">Pendente</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="rep-usability">Usabilidade (0-5)</label>
+              <input id="rep-usability" name="usability" type="number" min="0" max="5" step="1" value="3" />
+            </div>
+            <div class="field field-full">
+              <label for="rep-notes">Notas rápidas</label>
+              <textarea id="rep-notes" name="notes" rows="4" maxlength="2000" placeholder="O que funcionou? O que patinou? Entrega valor operacional?"></textarea>
+            </div>
+            <div class="field field-full row-actions">
+              <button type="submit" class="btn btn-primary">Salvar relatório</button>
+              <span id="report-form-status" class="status-msg" aria-live="polite"></span>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel report-history">
+          <div class="panel-head">
+            <h2>Histórico de homologação</h2>
+            <div class="row-actions">
+              <button type="button" class="btn btn-ghost" id="export-reports">Exportar JSON</button>
+              <button type="button" class="btn btn-ghost" id="export-reports-csv">Exportar CSV</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>Data</th><th>Projeto</th><th>Operador</th><th>Veredito</th><th>Nota</th><th>Observação</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="reports-body"></tbody>
+            </table>
+          </div>
+          <p class="empty" id="reports-empty" hidden>Nenhum relatório ainda. Comece pelo grid de comando.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-kaggle" class="view" role="tabpanel" aria-label="Kaggle Sandbox">
+      <div class="kaggle-hero panel">
+        <div>
+          <span class="eyebrow">AMBIENTE ISOLADO</span>
+          <h2>Kaggle como bancada de testes</h2>
+          <p>
+            Todo teste que exige execução de scripts Python, embeddings, GPU ou motores locais deve
+            acontecer em notebooks do Kaggle. A infraestrutura de produção da AWS permanece intocada.
+          </p>
+          <div class="row-actions">
+            <a class="btn btn-primary" href="https://www.kaggle.com/code/new" target="_blank" rel="noopener noreferrer">Novo notebook</a>
+            <a class="btn btn-ghost" href="https://www.kaggle.com/code" target="_blank" rel="noopener noreferrer">Explorar notebooks</a>
+          </div>
+        </div>
+        <div class="kaggle-radar" aria-hidden="true">
+          <span class="radar-ring"></span>
+          <span class="radar-core">GPU</span>
+          <span class="radar-note">T4 x2<br />internet on</span>
+        </div>
+      </div>
+
+      <div class="kaggle-layout">
+        <div class="panel">
+          <h2>Atalho por projeto</h2>
+          <p class="hint">Abra uma busca de notebooks no Kaggle para o projeto selecionado. Se o catálogo tiver uma URL própria, ela será usada como atalho direto.</p>
+          <div class="inline-form">
+            <label for="kaggle-project">Projeto</label>
+            <select id="kaggle-project"></select>
+            <button type="button" class="btn btn-primary" id="kaggle-open">Abrir Kaggle</button>
+          </div>
+          <div class="kaggle-link-list" id="kaggle-project-list"></div>
+        </div>
+
+        <div class="panel">
+          <h2>Checklist de isolamento</h2>
+          <ul class="checklist">
+            <li><span>01</span> Usar apenas notebooks descartáveis do Kaggle.</li>
+            <li><span>02</span> Nunca colar credenciais AWS, chaves privadas ou tokens de produção.</li>
+            <li><span>03</span> Ativar GPU somente quando o teste exigir processamento gráfico.</li>
+            <li><span>04</span> Salvar uma versão do notebook ao final de cada bateria.</li>
+            <li><span>05</span> Registrar o resultado no painel e colar o link do notebook.</li>
+          </ul>
+          <a class="btn btn-ghost" href="docs/KAGGLE.md" target="_blank" rel="noopener noreferrer">Guia completo de sandbox</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-settings" class="view" role="tabpanel" aria-label="Configurações">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Gerenciador de URLs e atalhos</h2>
+          <span class="badge-soft">sobrescreve sem tocar no código</span>
+        </div>
+        <p class="hint">
+          Edite o JSON indexado pelo <code>id</code> numérico do projeto. Campos aceitos:
+          <code>repoUrl</code>, <code>demoUrl</code>, <code>videoUrl</code>, <code>kaggleUrl</code>,
+          <code>embedUrl</code> e <code>embeddable</code>. No servidor, os dados vão para
+          <code>reports/url-overrides.json</code>; no modo estático, ficam no <code>localStorage</code>.
+        </p>
+        <textarea id="overrides-editor" class="code-editor" rows="16" spellcheck="false" aria-label="JSON de overrides"></textarea>
+        <div class="row-actions">
+          <button type="button" class="btn btn-primary" id="save-overrides">Salvar overrides</button>
+          <button type="button" class="btn btn-ghost" id="reload-overrides">Recarregar</button>
+          <span id="overrides-status" class="status-msg" aria-live="polite"></span>
+        </div>
+      </div>
+
+      <div class="settings-grid">
+        <div class="panel">
+          <h2>Portabilidade do catálogo</h2>
+          <p class="hint">
+            O catálogo vive em <code>projects.json</code>. Para adicionar ou remover projetos,
+            edite esse arquivo. Os botões abaixo exportam e importam o catálogo atual.
+          </p>
+          <div class="row-actions">
+            <button type="button" class="btn btn-ghost" id="export-projects">Exportar catálogo JSON</button>
+            <label class="btn btn-ghost" for="import-projects">Importar catálogo</label>
+            <input id="import-projects" type="file" accept="application/json" hidden />
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Como gerar uma nova instância</h2>
+          <p class="hint">
+            O template inclui o script <code>scripts/create-instance.js</code>. Copie o molde,
+            injete um novo <code>projects.json</code> e publique o resultado como
+            <strong>DragonZord Teste N</strong>.
+          </p>
+          <div class="terminal-line"><code>node scripts/create-instance.js ../meu-novo-zord ../catalogos/meu-catalogo.json</code></div>
+          <a class="btn btn-ghost" href="docs/INSTANCE-GUIDE.md" target="_blank" rel="noopener noreferrer">Guia para IA / novo dev</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="modal" hidden>
+    <div class="modal-backdrop" data-close="1"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="modal-close" data-close="1" aria-label="Fechar" type="button">&times;</button>
+      <div class="modal-head">
+        <span class="badge-num" id="modal-num">#00</span>
+        <div>
+          <h3 id="modal-title">Projeto</h3>
+          <span class="tag" id="modal-category">categoria</span>
+        </div>
+      </div>
+      <p class="modal-desc" id="modal-desc"></p>
+      <div class="link-list" id="modal-links"></div>
+      <div class="embed-wrap" id="modal-embed-wrap" hidden>
+        <div class="embed-note">
+          Pré-visualização incorporada. Sites que bloqueiam iframe ficam em branco; nesse caso,
+          use <strong>Abrir em nova aba</strong>.
+        </div>
+        <iframe id="modal-embed" title="Pré-visualização do projeto" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+      </div>
+      <div class="modal-foot">
+        <a class="btn btn-primary" id="modal-open-main" target="_blank" rel="noopener noreferrer">Abrir projeto</a>
+        <button type="button" class="btn btn-ghost" id="modal-embed-toggle" hidden>Tentar embed</button>
+        <button type="button" class="btn btn-ghost" id="modal-log-report">Registrar teste</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span>DragonZord · painel mestre de redirecionamento · nenhum binário pesado é baixado localmente</span>
+    <span id="footer-env"></span>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

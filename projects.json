@@ -1,0 +1,94 @@
+{
+  "meta": {
+    "project": "DragonZord Teste Zero",
+    "instance": "template",
+    "subtitle": "Molde coringa reutilizável para painéis de homologação",
+    "version": "1.0.0",
+    "updatedAt": "2026-11-15",
+    "source": "Template coringa do ecossistema DragonZord"
+  },
+  "categories": [
+    {
+      "id": "browser",
+      "label": "Agentes de Navegador",
+      "short": "Navegador",
+      "description": "Automação e controle de browsers via IA"
+    },
+    {
+      "id": "multi",
+      "label": "Frameworks Multi-Agent",
+      "short": "Multi-Agent",
+      "description": "Orquestração de múltiplos agentes, papéis e tarefas"
+    },
+    {
+      "id": "memory",
+      "label": "Camadas de Memória",
+      "short": "Memória",
+      "description": "Memória de longo prazo e contexto para agentes"
+    },
+    {
+      "id": "lowcode",
+      "label": "Automação Low-Code",
+      "short": "Low-Code",
+      "description": "Fluxos visuais e automação de trabalho"
+    }
+  ],
+  "projects": [
+    {
+      "id": 1,
+      "name": "Exemplo Navegador",
+      "category": "browser",
+      "description": "Card de exemplo para automação de navegador. Substitua este item pelo projeto real no arquivo projects.json.",
+      "repoUrl": "https://github.com/browser-use/browser-use",
+      "demoUrl": "https://browser-use.com",
+      "videoUrl": "https://www.youtube.com/results?search_query=browser+use+ai+tutorial",
+      "kaggleUrl": null,
+      "embedUrl": null,
+      "embeddable": false,
+      "status": "pendente",
+      "tags": ["exemplo", "python", "browser"]
+    },
+    {
+      "id": 2,
+      "name": "Exemplo Multi-Agent",
+      "category": "multi",
+      "description": "Card de exemplo para orquestração de agentes. Ajuste nome, categoria e links conforme a nova instância.",
+      "repoUrl": "https://github.com/crewAIInc/crewAI",
+      "demoUrl": "https://crewai.com",
+      "videoUrl": "https://www.youtube.com/results?search_query=crewai+tutorial",
+      "kaggleUrl": null,
+      "embedUrl": null,
+      "embeddable": false,
+      "status": "pendente",
+      "tags": ["exemplo", "multi-agent", "orquestração"]
+    },
+    {
+      "id": 3,
+      "name": "Exemplo Memória",
+      "category": "memory",
+      "description": "Card de exemplo para camadas de memória. Use este molde para catalogar mem0, Letta, Zep e afins.",
+      "repoUrl": "https://github.com/mem0ai/mem0",
+      "demoUrl": "https://mem0.ai",
+      "videoUrl": "https://www.youtube.com/results?search_query=mem0+ai+memory+tutorial",
+      "kaggleUrl": null,
+      "embedUrl": null,
+      "embeddable": false,
+      "status": "pendente",
+      "tags": ["exemplo", "memória", "agentes"]
+    },
+    {
+      "id": 4,
+      "name": "Exemplo Low-Code",
+      "category": "lowcode",
+      "description": "Card de exemplo para fluxos visuais. Inclua aqui Langflow, Flowise, Dify, n8n e outras automações.",
+      "repoUrl": "https://github.com/langflow-ai/langflow",
+      "demoUrl": "https://www.langflow.org",
+      "videoUrl": "https://www.youtube.com/results?search_query=langflow+tutorial",
+      "kaggleUrl": null,
+      "embedUrl": null,
+      "embeddable": false,
+      "status": "pendente",
+      "tags": ["exemplo", "low-code", "fluxos"]
+    }
+  ]
+}
