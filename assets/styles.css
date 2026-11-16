@@ -663,6 +663,115 @@ main {
 .estaleiro-build-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
 .estaleiro-build .btn { padding: 6px 10px; font-size: 0.72rem; }
 
+/* ---------- FRONTEND BADGE / BLOCK ---------- */
+.no-ui-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 93, 117, 0.28);
+  border-radius: 9px;
+  background: rgba(255, 93, 117, 0.07);
+  color: var(--red);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.no-ui-dot {
+  width: 7px; height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 9px var(--red);
+}
+
+.fe-block {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-2);
+}
+
+.fe-block.is-ui { border-color: rgba(108, 255, 158, 0.28); }
+.fe-block.is-backend { border-color: rgba(255, 93, 117, 0.28); }
+
+.fe-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.fe-head strong { font-size: 0.86rem; letter-spacing: 0.03em; }
+
+.fe-dot {
+  width: 8px; height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.fe-block.is-ui .fe-dot { background: var(--green); box-shadow: 0 0 10px var(--green); }
+.fe-block.is-backend .fe-dot { background: var(--red); box-shadow: 0 0 10px var(--red); }
+
+.fe-url {
+  margin-left: auto;
+  color: var(--cyan) !important;
+  background: rgba(55, 230, 213, 0.09) !important;
+  white-space: nowrap;
+}
+
+.fe-block p {
+  color: var(--muted);
+  font-size: 0.81rem;
+  line-height: 1.55;
+  margin: 0 0 9px;
+}
+
+.fe-block p:last-child { margin-bottom: 0; }
+
+.fe-cmd {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  flex-wrap: wrap;
+  padding: 8px 11px;
+  margin-bottom: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #03070c;
+}
+
+.fe-cmd span {
+  color: var(--muted);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  flex: none;
+}
+
+.fe-cmd code {
+  background: none;
+  padding: 0;
+  color: var(--green);
+  overflow-wrap: anywhere;
+}
+
+.fe-actions { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 10px; }
+
+.btn.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* ---------- AUTH ---------- */
 .app-shell[hidden] { display: none; }
 body.auth-locked { overflow: hidden; }

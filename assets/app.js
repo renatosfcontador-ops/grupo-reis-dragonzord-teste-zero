@@ -307,6 +307,18 @@ function cardTemplate(project) {
   const videoButton = project.videoUrl
     ? `<a class="btn btn-ghost" href="${escapeHtml(project.videoUrl)}" target="_blank" rel="noopener noreferrer" title="Buscar vídeo de referência">Vídeo</a>`
     : '';
+
+  const fe = frontendOf(project);
+  let primaryAction;
+  if (fe.hasUI && fe.localUrl) {
+    primaryAction = `<a class="btn btn-primary" href="${escapeHtml(fe.localUrl)}" target="_blank" rel="noopener noreferrer">Abrir interface</a>`;
+  } else if (fe.hasUI) {
+    primaryAction = `<button class="btn btn-primary" data-action="test" data-id="${escapeHtml(project.id)}">Como executar</button>`;
+  } else {
+    primaryAction = `<span class="no-ui-badge" title="${escapeHtml(fe.note)}"><span class="no-ui-dot" aria-hidden="true"></span>Sem interface web nativa</span>`;
+  }
+  const showDetails = !(fe.hasUI && !fe.localUrl);
+
   return `
     <article class="card" data-cat="${escapeHtml(project.category)}" data-id="${escapeHtml(project.id)}">
       <div class="card-head">
@@ -324,7 +336,8 @@ function cardTemplate(project) {
         ${tags}
       </div>
       <div class="card-actions">
-        <button class="btn btn-primary" data-action="test" data-id="${escapeHtml(project.id)}">Testar interface</button>
+        ${primaryAction}
+        ${showDetails ? `<button class="btn btn-ghost" data-action="test" data-id="${escapeHtml(project.id)}">Detalhes</button>` : ''}
         <a class="btn btn-ghost" href="${escapeHtml(project.repoUrl || '#')}" target="_blank" rel="noopener noreferrer">GitHub</a>
         ${videoButton}
       </div>
@@ -340,6 +353,60 @@ function renderGrid() {
   $$('[data-action="test"]', grid).forEach((button) => {
     button.addEventListener('click', () => openModal(Number(button.dataset.id)));
   });
+}
+
+const FRONTEND_LABELS = {
+  web: 'Interface web',
+  desktop: 'Aplicativo desktop',
+  extension: 'Extensão de navegador',
+  cli: 'Linha de comando',
+  library: 'Biblioteca / API',
+};
+
+function frontendOf(project) {
+  const raw = project.frontend || {};
+  const kind = raw.kind || (raw.hasUI ? 'web' : 'library');
+  const hasUI = Boolean(raw.hasUI);
+  return {
+    hasUI,
+    kind,
+    label: raw.label || FRONTEND_LABELS[kind] || 'Interface',
+    localUrl: raw.localUrl || null,
+    runCommand: raw.runCommand || '',
+    note: raw.note || (hasUI
+      ? 'Interface disponível após executar o projeto localmente.'
+      : 'Este repositório não possui front-end nativo.'),
+  };
+}
+
+function frontendBlockTemplate(project) {
+  const fe = frontendOf(project);
+
+  if (!fe.hasUI) {
+    return `<div class="fe-block is-backend">
+      <div class="fe-head">
+        <span class="fe-dot" aria-hidden="true"></span>
+        <strong>Repositório Backend — Sem Interface Web Nativa</strong>
+      </div>
+      <p>${escapeHtml(fe.note)}</p>
+      ${fe.runCommand ? `<div class="fe-cmd"><span>Uso</span><code>${escapeHtml(fe.runCommand)}</code></div>` : ''}
+    </div>`;
+  }
+
+  const action = fe.localUrl
+    ? `<a class="btn btn-primary" href="${escapeHtml(fe.localUrl)}" target="_blank" rel="noopener noreferrer">Abrir interface local</a>`
+    : `<span class="badge-soft">Requer execução local</span>`;
+
+  return `<div class="fe-block is-ui">
+    <div class="fe-head">
+      <span class="fe-dot" aria-hidden="true"></span>
+      <strong>${escapeHtml(fe.label)}</strong>
+      ${fe.localUrl ? `<code class="fe-url">${escapeHtml(fe.localUrl)}</code>` : ''}
+    </div>
+    ${fe.runCommand ? `<div class="fe-cmd"><span>Comando</span><code>${escapeHtml(fe.runCommand)}</code></div>` : ''}
+    ${fe.note ? `<p>${escapeHtml(fe.note)}</p>` : ''}
+    <div class="fe-actions">${action}</div>
+  </div>`;
 }
 
 function linkRow(label, url, enabled) {
@@ -368,17 +435,30 @@ function openModal(projectId) {
   $('#modal-category').className = `tag cat-${project.category}`;
   $('#modal-desc').textContent = project.description;
 
+  const fe = frontendOf(project);
+  const frontendBlock = $('#modal-frontend');
+  if (frontendBlock) frontendBlock.innerHTML = frontendBlockTemplate(project);
+
   $('#modal-links').innerHTML = [
     linkRow('Repositório (cordão umbilical)', project.repoUrl, Boolean(project.repoUrl)),
-    linkRow('Demo / interface web', project.demoUrl, Boolean(project.demoUrl)),
     linkRow('Vídeo de referência (YouTube)', project.videoUrl, Boolean(project.videoUrl)),
     linkRow('Notebook / busca Kaggle', kaggleUrl, true),
   ].join('');
 
   const main = $('#modal-open-main');
-  main.href = project.demoUrl || project.repoUrl || '#';
-  main.textContent = project.demoUrl ? 'Abrir interface' : 'Abrir repositório';
-  main.classList.toggle('btn-primary', Boolean(project.demoUrl));
+  main.classList.remove('is-disabled');
+  if (fe.localUrl) {
+    main.href = fe.localUrl;
+    main.textContent = 'Abrir interface local';
+  } else if (project.repoUrl) {
+    main.href = project.repoUrl;
+    main.textContent = 'Abrir repositório';
+  } else {
+    main.href = '#';
+    main.textContent = 'Sem interface';
+    main.classList.add('is-disabled');
+  }
+  main.classList.toggle('btn-primary', Boolean(fe.localUrl || project.repoUrl));
 
   const embedToggle = $('#modal-embed-toggle');
   const embedWrap = $('#modal-embed-wrap');

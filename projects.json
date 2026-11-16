@@ -46,7 +46,19 @@
       "embedUrl": null,
       "embeddable": false,
       "status": "pendente",
-      "tags": ["exemplo", "python", "browser"]
+      "tags": [
+        "exemplo",
+        "python",
+        "browser"
+      ],
+      "frontend": {
+        "hasUI": false,
+        "kind": "library",
+        "label": "Biblioteca / API",
+        "localUrl": null,
+        "runCommand": "pip install browser-use",
+        "note": "Este repositório não possui front-end nativo."
+      }
     },
     {
       "id": 2,
@@ -60,7 +72,19 @@
       "embedUrl": null,
       "embeddable": false,
       "status": "pendente",
-      "tags": ["exemplo", "multi-agent", "orquestração"]
+      "tags": [
+        "exemplo",
+        "multi-agent",
+        "orquestração"
+      ],
+      "frontend": {
+        "hasUI": false,
+        "kind": "library",
+        "label": "Biblioteca / API",
+        "localUrl": null,
+        "runCommand": "pip install crewai",
+        "note": "Este repositório não possui front-end nativo."
+      }
     },
     {
       "id": 3,
@@ -74,7 +98,19 @@
       "embedUrl": null,
       "embeddable": false,
       "status": "pendente",
-      "tags": ["exemplo", "memória", "agentes"]
+      "tags": [
+        "exemplo",
+        "memória",
+        "agentes"
+      ],
+      "frontend": {
+        "hasUI": false,
+        "kind": "library",
+        "label": "Biblioteca / API",
+        "localUrl": null,
+        "runCommand": "pip install mem0ai",
+        "note": "Este repositório não possui front-end nativo."
+      }
     },
     {
       "id": 4,
@@ -88,7 +124,19 @@
       "embedUrl": null,
       "embeddable": false,
       "status": "pendente",
-      "tags": ["exemplo", "low-code", "fluxos"]
+      "tags": [
+        "exemplo",
+        "low-code",
+        "fluxos"
+      ],
+      "frontend": {
+        "hasUI": true,
+        "kind": "web",
+        "label": "Interface web",
+        "localUrl": "http://localhost:7860",
+        "runCommand": "pip install langflow && langflow run",
+        "note": "Interface disponível após executar o projeto localmente."
+      }
     }
   ]
 }
